@@ -109,10 +109,13 @@ def test_setup_submit_configures_wallet(local_client: TestClient, _redirect_env:
         assert body["wallet_address"] == _FAKE_FUNDER
 
         # Server now reports configured and the keys were persisted to the env file.
-        assert client.get("/health").json()["configured"] is True
+        health = client.get("/health").json()
+        assert health["configured"] is True
+        assert health["wallet_address"] == _FAKE_FUNDER
         written = _redirect_env.read_text()
         assert "PRIVATE_KEY=" in written
         assert f"FUNDER_ADDRESS={_FAKE_FUNDER}" in written
+        assert (_redirect_env.stat().st_mode & 0o777) == 0o600
 
 
 def test_setup_submit_reconfigures_when_already_configured(
